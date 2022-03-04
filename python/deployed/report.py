@@ -59,6 +59,31 @@ humids = [-1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1
 now = datetime.datetime.now()
 last_H = int(now.strftime("%H"))
 
+def filter_single(img):
+   # convert image to grayscale image
+    gray_image = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
+    # convert the grayscale image to binary image
+    ret,thresh = cv2.threshold(gray_image,127,255,0)   
+    light = np.mean(thresh)
+    # calculate moments of binary image
+    M = cv2.moments(thresh)
+    try:     
+        # calculate x,y coordinate of center
+        cX = int(M["m10"] / (M["m00"] + 1e-5))
+        cY = int(M["m01"] / (M["m00"] + 1e-5))  
+        unbalance = abs(cX-49)+abs(cY-49) # zero index?
+        #print(unbalance)
+        #print(light)
+        
+        if (unbalance < 8) and (light > 200):
+            print("single insect")
+            return(True)
+    except:
+        print("bad egg")
+        return(False)
+    print("multi insect")
+    return(False)
+
 def upload_image(np_array, str_fname, extn):
     try:
         
@@ -155,34 +180,39 @@ def extract(img_a, img_b, snap_time):
             accum_weevil_num = accum_weevil_num + 1
             cv2.circle(img=img_c, center = (int(keypoint.pt[0]), int(keypoint.pt[1])), radius =50, color =(0,0,255), thickness=10)
             roi = img_b[int(keypoint.pt[1]-50):int(keypoint.pt[1]+50), int(keypoint.pt[0]-50):int(keypoint.pt[0]+50)]
-            #cv2.imshow("Cropped", roi)
-            #cv2.waitKey(0)
-            bug_file = snap_time + "(" + str(n) + ")"+ ".png"
-            upload_training(roi, bug_file, ".png")
-            valid_hits = True
-            if (n >= most_weevils_detected):
-                most_weevils_detected = n
-                most_weevils_image = img_c
+            
+            if (filter_single(roi)):
+            
+                #cv2.imshow("Cropped", roi)
+                #cv2.waitKey(0)
+                bug_file = snap_time + "(" + str(n) + ")"+ ".png"
+                upload_training(roi, bug_file, ".png")
+                valid_hits = True
+                if (n >= most_weevils_detected):
+                    most_weevils_detected = n
+                    most_weevils_image = img_c
+                    
+                x = (pos%5 * 100)
+                if pos < 5:
+                    y = 0
+                elif pos < 10:
+                    y = 100
+                elif pos < 15:
+                    y = 200
+                elif pos < 20:
+                    y = 300
+                elif pos < 25:
+                    y = 400
+                #print(x)
+                #print(y)
+                #print()
+                matrix[y:y+100,x:x+100] = roi[:,:]
                 
-            x = (pos%5 * 100)
-            if pos < 5:
-                y = 0
-            elif pos < 10:
-                y = 100
-            elif pos < 15:
-                y = 200
-            elif pos < 20:
-                y = 300
-            elif pos < 25:
-                y = 400
-            #print(x)
-            #print(y)
-            #print()
-            matrix[y:y+100,x:x+100] = roi[:,:]
+                pos = pos + 1
+                if (pos > 24):
+                    pos = 0
+                
             del roi
-            pos = pos + 1
-            if (pos > 24):
-                pos = 0
                 
     print(str(n) + " bugs!")
     
