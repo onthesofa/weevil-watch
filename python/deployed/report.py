@@ -14,6 +14,8 @@ import RPi.GPIO as pio
 
 from email_summary import *
 from combo_sense import *
+from png_classify import *
+
 import matplotlib
 from matplotlib import pyplot as plt
 matplotlib.use('agg')
@@ -21,8 +23,8 @@ matplotlib.use('agg')
 import gc
 
 
-url = 'https://mechatron.co.uk/weevils/upload.php'
-training_url = 'https://mechatron.co.uk/weevils/upload_training.php'
+url = 'https:/xxx.co.uk/weevils/upload.php'
+training_url = 'https://xxx.co.uk/weevils/upload_training.php'
 
 # initialize the camera and grab a reference to the raw camera capture
 camera = PiCamera()
@@ -174,7 +176,7 @@ def extract(img_a, img_b, snap_time):
     valid_hits = False
     
     for keypoint in keypoints:
-        print(keypoint.pt)
+        #print(keypoint.pt)
         if not ((keypoint.pt[1] < 60) or (keypoint.pt[1] > 1172) or (keypoint.pt[0] < 60) or (keypoint.pt[0] > 1172)):
             n = n + 1
             accum_weevil_num = accum_weevil_num + 1
@@ -182,6 +184,8 @@ def extract(img_a, img_b, snap_time):
             roi = img_b[int(keypoint.pt[1]-50):int(keypoint.pt[1]+50), int(keypoint.pt[0]-50):int(keypoint.pt[0]+50)]
             
             if (filter_single(roi)):
+                
+                roi = sorting_hat('model.tflite', 2, 2, bool(False), roi)
             
                 #cv2.imshow("Cropped", roi)
                 #cv2.waitKey(0)

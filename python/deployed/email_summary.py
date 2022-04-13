@@ -28,9 +28,8 @@ def send_email(bar,bar_l,bar_t,bar_h,trap,matrix):
         filename_bar_t = "temp.jpg"
         filename_bar_h = "RH.jpg"
         
-
-        sender_email = 'weevils@mechatron.co.uk'
-        receiver_email = ['mbutler@harper-adams.ac.uk', 'jroberts@harper-adams.ac.uk']
+        sender_email = 'weevils@xxx.co.uk'
+        receiver_email = ['mbutler@xxx.ac.uk', 'jroberts@xxx.ac.uk']
 
         msg = MIMEMultipart()
         msg['Subject'] = subject
@@ -41,16 +40,24 @@ def send_email(bar,bar_l,bar_t,bar_h,trap,matrix):
         
         # activity chart
         (flag, bar) = cv2.imencode(".jpg", bar)
+        
+        print('bar encoded to jpg')
 
         part = MIMEBase("application", "octet-stream")
         part.set_payload(bar)
+        
+        print('payload set')
         # Encode file in ASCII characters to send by email    
         encoders.encode_base64(part)
         # Add header as key/value pair to attachment part
+        print('encoded base64')
+        
         part.add_header(
             "Content-Disposition",
             f"attachment; filename= {filename_bar}",
         )
+        
+        print('header added')
 
         # Add attachment to message
         msg.attach(part)
@@ -158,8 +165,8 @@ def send_email(bar,bar_l,bar_t,bar_h,trap,matrix):
 
         # Log in to server using secure context and send email
         context = ssl.create_default_context()
-        with smtplib.SMTP_SSL('smtp.123-reg.co.uk', 465, context=context) as server:
-            server.login('weevils@mechatron.co.uk', 'xxxxxxx')
+        with smtplib.SMTP_SSL('smtp.xxx.co.uk', 465, context=context) as server:
+            server.login('weevils@xxx.co.uk', 'xxx')
             server.sendmail(sender_email, receiver_email, text)
         print('successfully sent the mail.')
  
@@ -167,4 +174,21 @@ def send_email(bar,bar_l,bar_t,bar_h,trap,matrix):
         print('Something went wrong')
 
     
+
+def main():
+    
+    
+    bar = cv2.imread('Harper.png')
+    bar_l = cv2.imread('Harper.png')
+    bar_t = cv2.imread('Harper.png')
+    bar_h = cv2.imread('weevil.png')
+    trap = cv2.imread('Harper.png')
+    matrix = cv2.imread('Harper.png')
+    
+
+    send_email(bar,bar_l,bar_t,bar_h,trap,matrix)
+    
+ 
+if __name__=="__main__":
+   main()
 
